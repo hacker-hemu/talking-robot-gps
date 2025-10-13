@@ -1,1 +1,59 @@
-.vercel
+# =========================================
+# Python & Flask general ignores
+# =========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+
+# =========================================
+# Virtual environments
+# =========================================
+venv/
+env/
+.venv/
+
+# =========================================
+# Environment / credentials
+# =========================================
+.env
+.google-cookie
+*.json
+
+# =========================================
+# Build / cache / temp
+# =========================================
+*.egg-info/
+.eggs/
+dist/
+build/
+*.spec
+
+# =========================================
+# Face Recognition project specific
+# =========================================
+# Skip large datasets and training files
+dataset/
+known/
+*.jpg
+*.jpeg
+*.png
+*.csv
+*.csv.txt
+
+# =========================================
+# IDE / OS files
+# =========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# =========================================
+# Vercel / Render related
+# =========================================
+.vercel/
+.vercelignore
