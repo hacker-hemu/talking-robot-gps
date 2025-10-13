@@ -290,7 +290,7 @@ video {
   95% { transform: scaleY(0.1); }
 }
 
-@keyframes talk {1
+@keyframes talk {
   0%, 100% { transform: scaleY(1); }
   50% { transform: scaleY(0.4); }
 }
