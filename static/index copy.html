@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xyroo – Face Recognizing Robot</title>
+  <link rel="stylesheet" href="static/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script defer src="static/js/main.js"></script>
+</head>
+<body>
+  <div class="robot">
+    <div class="antenna"></div>
+    <div class="head">
+      <div class="screen">
+        <div class="eyes">
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+        </div>
+        <div class="mouth"></div>
+      </div>
+    </div>
+  </div>
+
+   <div class="camera-box">
+    <!-- NOTE: resolution set to 480x360 in JS as well -->
+    <video id="video" width="480" height="360" autoplay muted playsinline></video>
+    <canvas id="overlay" width="480" height="360"></canvas>
+  </div>
+</body>
+</html>
