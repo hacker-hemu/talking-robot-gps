@@ -1,50 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xyroo – Face Recognizing Robot</title>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xyroo – Face Recognizing Robot</title>
-  <link rel="stylesheet" href="static/css/style.css">
+  <!-- <link rel="stylesheet" href="static/css/style.css"> -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script defer src="static/js/main.js"></script>
+  <style>
+    /* 🌑 Base setup */
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: white;
+      font-family: "Poppins", sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 🔹 Layout container */
+    .layout {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      transition: all 0.4s ease;
+    }
+
+    .left,
+    .right {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.4s ease;
+    }
+
+    .left {
+      background: #001d3d;
+    }
+
+    .right {
+      /* background: #000; */
+      position: relative;
+      
+    }
+
+    /* 🔸 Camera box */
+    .camera-box {
+      width: 90%;
+      max-width: 480px;
+      aspect-ratio: 4 / 3;
+      border: 3px solid #007bff;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #071829, #013047);
+      box-shadow: 0 0 30px rgba(0, 150, 255, 0.18);
+      opacity: 1;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .hide-preview .left {
+      display: none;
+      opacity: 0;
+      transform: scale(0.9);
+      pointer-events: none;
+    }
+
+    video,
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 🎙️ Mouth styling */
+    .mouth {
+      width: 300px;
+      height: 100px;
+      /* background: radial-gradient(circle at center, #ff0000 0%, #990000 100%); */
+      border-radius: 50px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+      transition: all 0.4s ease;
+      background-image: url("static/img/"), radial-gradient(circle at center, #ff0000 0%, #990000 100%);;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+
+    .mouth.speaking {
+      animation: talk 0.25s ease-in-out infinite;
+    }
+
+    @keyframes talk {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.4); }
+    }
+
+    /* When preview hidden — mouth takes full area */
+    /* .hide-preview .right {
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+    } */
+
+    /* .hide-preview .mouth {
+      width: 90%;
+      height: 25vh;
+      border-radius: 40px;
+      box-shadow: 0 0 40px rgba(255, 0, 0, 0.7);
+    } */
+
+    /* ⚙️ Toggle switch (sticky for landscape) */
+    .toggle-bar {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0, 29, 61, 0.9);
+      padding: 10px 18px;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(0, 123, 255, 0.4);
+      z-index: 100;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 55px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #555;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #007bff;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    /* 📱 Mobile portrait: vertical split */
+    @media (max-width: 768px) and (orientation: portrait) {
+      .layout {
+        flex-direction: column;
+      }
+
+      .left,
+      .right {
+        width: 100%;
+        height: 50%;
+      }
+
+      /* .hide-preview .right {
+        height: 100%;
+      } */
+
+      /* .hide-preview .mouth {
+        width: 80%;
+        height: 30vh;
+      } */
+
+      .toggle-bar {
+        bottom: 10px;
+        right: 50%;
+        transform: translateX(50%);
+      }
+    }
+
+    /* 📺 Landscape mode: horizontal split */
+    @media (orientation: landscape) {
+      .layout {
+        flex-direction: row;
+      }
+
+      .left,
+      .right {
+        width: 50%;
+        height: 100%;
+      }
+
+      .hide-preview .right {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="robot-wrap">
-    <div id="robot">
-      <div class="head">
-        <div class="screen">
-          <div class="eyes">
-            <div class="eye left"></div>
-            <div class="eye right"></div>
-          </div>
-          <div class="mouth"></div>
+  <div class="layout" id="mainLayout">
+    <div class="left">
+      <div class="camera-box" id="cameraBox">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+    </div>
+
+    <div class="right">
+      <div id="robot">
+        <div class="mouth">
+          <div class="teeth"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="camera-box" style="display: none;">
-    <video id="video" width="480" height="360" autoplay muted playsinline></video>
-    <canvas id="overlay" width="480" height="360"></canvas>
+  <!-- 🟢 Sticky Toggle Switch -->
+  <div class="toggle-bar">
+    <label>Preview</label>
+    <label class="switch">
+      <input type="checkbox" id="previewToggle" checked />
+      <span class="slider"></span>
+    </label>
   </div>
 
-  <div id="qa-display" style="
-      text-align:center;
-      font-size: 18px;
-      color: #003b5c;
-      margin-top: 20px;
-      background: rgba(255,255,255,0.4);
-      padding: 12px 20px;
-      border-radius: 12px;
-      width: 60%;
-      max-width: 480px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      display:none;"></div>
+  <!-- 🟢 Fullscreen Toggle Button -->
+<button id="fullscreenBtn" 
+  style="
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0,123,255,0.5);
+  ">
+  ⛶
+</button>
 
-  <div id="mic-status" style="position:fixed; bottom:20px; right:20px; font-size:14px; color:#007bff;">
-    🎤 Listening...
-  </div>
+<script>
+  const fsBtn = document.getElementById("fullscreenBtn");
 
+  fsBtn.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      fsBtn.textContent = "⛶";
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+      fsBtn.textContent = "⛶";
+    }
+  });
+
+  // Automatically update button label when user presses ESC or exits manually
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      fsBtn.textContent = "⛶";
+    } else {
+      fsBtn.textContent = "⛶";
+    }
+  });
+</script>
+
+
+
+  <!-- 🟡 Your Original Script (unchanged) -->
   <script>
     (function () {
       const mouth = document.querySelector('.mouth');
@@ -67,6 +327,21 @@
         originalSpeak(utter);
       };
     })();
+  </script>
+
+  <!-- 🟢 Toggle Logic -->
+  <script>
+    const layout = document.getElementById("mainLayout");
+    const lcameraBoxeft = document.getElementById("cameraBox");
+    const toggleSwitch = document.getElementById("previewToggle");
+
+    toggleSwitch.addEventListener("change", () => {
+      if (toggleSwitch.checked) {
+        layout.classList.remove("hide-preview");
+      } else {
+        layout.classList.add("hide-preview");
+      }
+    });
   </script>
 </body>
 </html>

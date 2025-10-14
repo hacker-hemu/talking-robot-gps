@@ -15,7 +15,7 @@ const DETECT_INTERVAL = 800; // ⚡ Reduced CPU load
 const TINY_INPUT_SIZE = 160;
 const SCORE_THRESHOLD = 0.5;
 const CONFIDENCE_THRESHOLD = 0.60;
-const GREET_DELAY = 300000; // 30 seconds
+const GREET_DELAY = 60000; // 30 seconds
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('overlay');
@@ -254,25 +254,48 @@ async function startCamera() {
     }
 }
 
+// async function loadKnownFaces() {
+//     try {
+//         const res = await fetch('/known-list');
+//         const data = await res.json();
+//         for (const file of data.images || []) {
+//             const label = file.split('.')[0];
+//             const img = await faceapi.fetchImage(`/known/${file}`);
+//             const detection = await faceapi
+//                 .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: TINY_INPUT_SIZE }))
+//                 .withFaceLandmarks()
+//                 .withFaceDescriptor();
+//             if (detection) labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+//         }
+//         if (labeledDescriptors.length)
+//             faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+//     } catch (err) {
+//         console.error('Error loading known faces:', err);
+//     }
+// }
+
 async function loadKnownFaces() {
     try {
-        const res = await fetch('/known-list');
+        const res = await fetch('/encodings');
         const data = await res.json();
-        for (const file of data.images || []) {
-            const label = file.split('.')[0];
-            const img = await faceapi.fetchImage(`/known/${file}`);
-            const detection = await faceapi
-                .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: TINY_INPUT_SIZE }))
-                .withFaceLandmarks()
-                .withFaceDescriptor();
-            if (detection) labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
-        }
-        if (labeledDescriptors.length)
+
+        labeledDescriptors = data.names.map((name, i) => {
+            return new faceapi.LabeledFaceDescriptors(
+                name,
+                [new Float32Array(data.encodings[i])]
+            );
+        });
+
+        if (labeledDescriptors.length) {
             faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+            console.log(`✅ Loaded ${labeledDescriptors.length} trained faces`);
+        }
     } catch (err) {
-        console.error('Error loading known faces:', err);
+        console.error('Error loading trained encodings:', err);
     }
 }
+
+
 
 async function detectionLoop() {
     if (!video || video.paused || video.ended) {
@@ -321,7 +344,7 @@ async function detectionLoop() {
                         if (!greeted.has(displayName)) {
                             speakText(`Hello ${displayName}, welcome to Melodia 2025!`);
                         } else {
-                            speakText(`Welcome back ${displayName}!`);
+                            speakText(`Welcome back ${displayName}!, How can I help you?`);
                         }
                     }
                     greeted.set(displayName, now);
@@ -332,7 +355,7 @@ async function detectionLoop() {
                 const labelText = `${displayName} (${Math.round(confidence * 100)}%)`;
                 ctx.fillText(labelText, box.x + 4, box.y - 6);
 
-                // console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
+                console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
             }
         }
     } catch (err) {

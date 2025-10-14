@@ -1,128 +1,11 @@
-/* ---------- base ---------- */
-:root{
-  --bg-top: #bfe7ff;
-  --bg-bottom: #dfeeff;
-  --white: #fbfdff;
-  --soft-white: #f5f7fb;
-  --glass-dark: #0a1723;
-  --glow-blue: #4fe0ff;
-  --glossy-shine: rgba(255,255,255,0.12);
-}
-
-/* page */
-* { box-sizing: border-box; }
-html,body { height: 100%; }
-body {
-  margin: 0;
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap: 32px;
-  padding: 36px;
-  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-
-/* ---------- robot area layout ---------- */
-.robot-wrap{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width: 420px;
-  height: 420px;
-  position: relative;
-  pointer-events: none; /* visual only */
-}
-
-/* robot container (floating) */
-.robot{
-  position: relative;
-  width: 260px;
-  height: 360px;
-  transform-origin:center;
-  animation: float 4s ease-in-out infinite;
-  z-index: 20;
-}
-
-/* subtle shadow under robot to match hover */
-.shadow-oval {
-  position: absolute;
-  left: 50%;
-  bottom: -14px;
-  transform: translateX(-50%);
-  width: 240px;
-  height: 30px;
-  background: radial-gradient(closest-side, rgba(1,10,30,0.15), rgba(1,10,30,0.02));
-  filter: blur(8px);
-  border-radius: 50%;
-  z-index: -1;
-}
-
-
-
-/* face area (where eyes + mouth live) */
-.face {
-  position: relative;
-  width: 92%;
-  height: 82%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap: 6px;
-}
-
-/* eyes group */
-.eyes {
-  width: 70%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  pointer-events: none;
-}
-
-/* single eye: curved glowing arc */
-.eye {
-  width: 46px;
-  height: 26px;
-  position: relative;
-  border-radius: 28px 28px 8px 8px;
-  background: linear-gradient(180deg, rgba(80,240,255,0.95), rgba(6,200,255,0.9));
-  box-shadow: 0 0 20px rgba(80,240,255,0.45), inset 0 6px 12px rgba(255,255,255,0.15);
-  transform: translateY(4px);
-  opacity: 0.98;
-}
-
-/* make eyes more like crescent (cut bottom with pseudo) */
-.eye::after{
-  content: "";
-  position: absolute;
-  left: 0; right:0; bottom: -6px;
-  height: 20px;
-  background: transparent;
-  border-radius: 50%;
-  box-shadow: 0 -12px 14px rgba(3,20,30,0.5) inset;
-  mix-blend-mode: multiply;
-}
-
-/* eye glow pulse */
-.eye {
-  animation: eye-glow 2.8s ease-in-out infinite;
-}
-@keyframes eye-glow{
-  0%,100% { filter: drop-shadow(0 0 6px rgba(80,240,255,0.25)); transform: translateY(4px) scale(1); }
-  50% { filter: drop-shadow(0 0 14px rgba(80,240,255,0.5)); transform: translateY(2px) scale(1.03); }
-}
 
 /* mouth (keeps same selector .mouth for JS) */
 .mouth {
   width: 64px;
   height: 12px;
   border-radius: 50px;
-  background: linear-gradient(180deg, rgba(80,240,255,0.95), rgba(6,200,255,0.9));
-  box-shadow: 0 0 24px rgba(80,240,255,0.35), inset 0 4px 12px rgba(255,255,255,0.18);
+  background: linear-gradient(180deg, rgba(255, 80, 80, 0.95), rgba(255, 6, 6, 0.9));
+  box-shadow: 0 0 24px rgba(255, 80, 80, 0.35), inset 0 4px 12px rgba(255,255,255,0.18);
   transition: height 90ms linear, transform 80ms linear, width 110ms linear;
   /* idle: no animation */
   transform-origin: center;
@@ -139,21 +22,6 @@ body {
   0% { height: 12px; transform: scaleX(1); width: 64px; border-radius: 40px; }
   50% { height: 28px; transform: scaleX(1.12); width: 70px; border-radius: 36px; }
   100% { height: 12px; transform: scaleX(1); width: 64px; border-radius: 40px; }
-}
-
-/* helper small details to mimic the glossy reflection on the face */
-.face::before {
-  content: "";
-  position: absolute;
-  right: 8%;
-  top: 6%;
-  width: 28%;
-  height: 32%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
-  border-radius: 50%;
-  transform: rotate(-18deg);
-  filter: blur(6px);
-  pointer-events:none;
 }
 
 /* ---------- camera box (kept visible) ---------- */
@@ -190,78 +58,13 @@ video {
   .camera-box { width: 340px; height: 260px; }
 }
 
-
-
-
-/* === 3D Robot Design === */
-#robot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  animation: float 4s ease-in-out infinite;
-  z-index: 10;
-}
-
-/* Head */
-.head {
-  width: 500px;
-  height: 400px;
-  background: linear-gradient(145deg, #f9f9f9, #dfe7f0);
-  border-radius: 40%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25),
-              inset -8px -8px 16px rgba(255, 255, 255, 0.8),
-              inset 6px 6px 12px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-/* Face screen */
-.screen {
-  width: 400px;
-  height: 300px;
-  background: radial-gradient(circle at 20% 20%, #111 10%, #0b1b2b 90%);
-  border-radius: 40%;
-  box-shadow: inset 0 0 25px rgba(0, 180, 255, 0.25),
-              0 0 25px rgba(0, 180, 255, 0.25);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Eyes */
-.eye {
-  width: 100px;
-  height: 30px;
-  background: radial-gradient(circle at center, #00cfff 0%, #007bff 80%);
-  border-radius: 50%;
-  box-shadow: 0 0 15px #00bfff;
-  margin: 0 50px;
-  animation: blink 6s infinite;
-}
-
-.eyes {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 70px;
-}
-
 /* Mouth */
 .mouth {
   width: 100px;
   height: 30px;
-  background: radial-gradient(circle at center, #00cfff 0%, #007bff 100%);
+  background: radial-gradient(circle at center, #ff0000 0%, #ff0000 100%);
   border-radius: 20px;
-  box-shadow: 0 0 15px rgba(0, 180, 255, 0.7);
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
   transition: transform 0.2s ease;
 }
 

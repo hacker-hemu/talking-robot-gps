@@ -196,91 +196,166 @@ def known_list():
         print(f"❌ Error in known-list: {e}")
         return jsonify({"images": []})
 
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     try:
+#         print("📥 Received request to /ask")
+        
+#         # Get JSON data
+#         if not request.is_json:
+#             print("❌ Request is not JSON")
+#             return jsonify({
+#                 "answer": "Please provide a valid JSON request.",
+#                 "match": None,
+#                 "score": 0
+#             }), 400
+        
+#         data = request.get_json()
+#         if not data:
+#             print("❌ No data in request")
+#             return jsonify({
+#                 "answer": "Please provide a valid JSON request.",
+#                 "match": None,
+#                 "score": 0
+#             }), 400
+        
+#         question = (data.get('question') or '').strip().lower()
+#         print(f"🧠 User asked: '{question}'")
+
+#         if not question:
+#             print("❌ Empty question")
+#             return jsonify({
+#                 "answer": "Please ask a valid question.",
+#                 "match": None,
+#                 "score": 0
+#             }), 400
+
+#         # Find best match using fuzzy matching
+#         best_match, score = None, 0
+        
+#         if qa_dict and len(qa_dict) > 0:
+#             try:
+#                 result = process.extractOne(question, qa_dict.keys(), scorer=fuzz.token_sort_ratio)
+#                 if result:
+#                     best_match, score = result[0], result[1]
+#                     print(f"🔍 Best match: '{best_match}' with score: {score}%")
+#             except Exception as e:
+#                 print(f"❌ Error in fuzzy matching: {e}")
+#                 # Fallback: simple keyword matching
+#                 for key in qa_dict.keys():
+#                     if key in question:
+#                         best_match, score = key, 80
+#                         break
+#         else:
+#             print("❌ Q&A dictionary is empty")
+#             return jsonify({
+#                 "answer": "I'm still learning. Please try again later.",
+#                 "match": None,
+#                 "score": 0
+#             }), 500
+
+#         # Respond based on match score
+#         if score >= 70:  # Lowered threshold to 50% for better matching
+#             print(f"✅ Answering: '{best_match}'")
+#             return jsonify({
+#                 "answer": qa_dict[best_match],
+#                 "match": best_match,
+#                 "score": score
+#             })
+#         # else:
+#         #     # If no good match found
+#         #     print(f"❌ No good match found. Best was: '{best_match}' ({score}%)")
+#         #     return jsonify({
+#         #         "answer": "Sorry, I didn't understand that. Can you rephrase your question?",
+#         #         "match": best_match,
+#         #         "score": score
+#         #     })
+            
+#     except Exception as e:
+#         print(f"❌ Unexpected error in /ask route: {str(e)}")
+#         import traceback
+#         traceback.print_exc()
+#         return jsonify({
+#             "answer": "Sorry, I encountered an unexpected error. Please try again.",
+#             "match": None,
+#             "score": 0,
+#             "error": str(e)
+#         }), 500
+
+
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
         print("📥 Received request to /ask")
-        
-        # Get JSON data
+
+        # Validate JSON
         if not request.is_json:
-            print("❌ Request is not JSON")
-            return jsonify({
-                "answer": "Please provide a valid JSON request.",
-                "match": None,
-                "score": 0
-            }), 400
-        
+            return jsonify({"answer": "Please provide a valid JSON request.", "match": None, "score": 0}), 400
+
         data = request.get_json()
-        if not data:
-            print("❌ No data in request")
-            return jsonify({
-                "answer": "Please provide a valid JSON request.",
-                "match": None,
-                "score": 0
-            }), 400
-        
         question = (data.get('question') or '').strip().lower()
-        print(f"🧠 User asked: '{question}'")
 
         if not question:
-            print("❌ Empty question")
-            return jsonify({
-                "answer": "Please ask a valid question.",
-                "match": None,
-                "score": 0
-            }), 400
+            return jsonify({"answer": "Please ask a valid question.", "match": None, "score": 0}), 400
 
-        # Find best match using fuzzy matching
-        best_match, score = None, 0
-        
-        if qa_dict and len(qa_dict) > 0:
-            try:
-                result = process.extractOne(question, qa_dict.keys(), scorer=fuzz.token_sort_ratio)
-                if result:
-                    best_match, score = result[0], result[1]
-                    print(f"🔍 Best match: '{best_match}' with score: {score}%")
-            except Exception as e:
-                print(f"❌ Error in fuzzy matching: {e}")
-                # Fallback: simple keyword matching
-                for key in qa_dict.keys():
-                    if key in question:
-                        best_match, score = key, 80
-                        break
-        else:
-            print("❌ Q&A dictionary is empty")
-            return jsonify({
-                "answer": "I'm still learning. Please try again later.",
-                "match": None,
-                "score": 0
-            }), 500
+        print(f"🧠 User asked: '{question}'")
 
-        # Respond based on match score
-        if score >= 50:  # Lowered threshold to 50% for better matching
-            print(f"✅ Answering: '{best_match}'")
+        # Normalize question (remove punctuation)
+        import re
+        question_clean = re.sub(r'[^\w\s]', '', question)
+
+        best_match = None
+        best_score = 0
+
+        # === Improved Matching Logic ===
+        for key in qa_dict.keys():
+            key_clean = re.sub(r'[^\w\s]', '', key.lower())
+            score = fuzz.ratio(question_clean, key_clean)
+
+            # Bonus points for substring match (direct inclusion)
+            if key_clean in question_clean or question_clean in key_clean:
+                score += 15
+
+            if score > best_score:
+                best_score = score
+                best_match = key
+
+        print(f"🔍 Best match: '{best_match}' ({best_score}%)")
+
+        # === Confidence check ===
+        if best_score >= 70:
+            print(f"✅ Answering for: '{best_match}'")
             return jsonify({
                 "answer": qa_dict[best_match],
                 "match": best_match,
-                "score": score
+                "score": best_score
             })
         # else:
-        #     # If no good match found
-        #     print(f"❌ No good match found. Best was: '{best_match}' ({score}%)")
+        #     print(f"❌ Low confidence ({best_score}%)")
         #     return jsonify({
-        #         "answer": "Sorry, I didn't understand that. Can you rephrase your question?",
+        #         "answer": "Sorry, I didn't understand that clearly. Can you rephrase?",
         #         "match": best_match,
-        #         "score": score
+        #         "score": best_score
         #     })
-            
+
     except Exception as e:
-        print(f"❌ Unexpected error in /ask route: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error in /ask: {str(e)}")
         return jsonify({
-            "answer": "Sorry, I encountered an unexpected error. Please try again.",
+            "answer": "Sorry, an error occurred. Please try again.",
             "match": None,
             "score": 0,
             "error": str(e)
         }), 500
+
+
+@app.route("/encodings")
+def get_encodings():
+    import pickle
+    with open("encodings.pkl", "rb") as f:
+        data = pickle.load(f)
+    # Convert numpy arrays to lists for JSON
+    data["encodings"] = [enc.tolist() for enc in data["encodings"]]
+    return jsonify(data)
 
 @app.route('/test')
 def test():

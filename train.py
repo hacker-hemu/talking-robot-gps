@@ -49,6 +49,7 @@ with open(CSV_PATH, newline='', encoding='utf-8') as csvfile:
 
 print(f"Finished. Saved {count} encodings.")
 data = {"encodings": encodings, "names": names, "descriptions": descriptions_map}
+print(data)
 with open(OUT_PATH, "wb") as f:
     pickle.dump(data, f)
 print("Saved to", OUT_PATH)
