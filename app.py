@@ -262,14 +262,14 @@ def ask():
                 "match": best_match,
                 "score": score
             })
-        else:
-            # If no good match found
-            print(f"❌ No good match found. Best was: '{best_match}' ({score}%)")
-            return jsonify({
-                "answer": "Sorry, I didn't understand that. Can you rephrase your question?",
-                "match": best_match,
-                "score": score
-            })
+        # else:
+        #     # If no good match found
+        #     print(f"❌ No good match found. Best was: '{best_match}' ({score}%)")
+        #     return jsonify({
+        #         "answer": "Sorry, I didn't understand that. Can you rephrase your question?",
+        #         "match": best_match,
+        #         "score": score
+        #     })
             
     except Exception as e:
         print(f"❌ Unexpected error in /ask route: {str(e)}")
