@@ -3,8 +3,4 @@ Flask-Cors==6.0.1
 numpy==2.2.6
 opencv-python==4.12.0.88
 pillow==11.3.0
-<<<<<<< HEAD
 rapidfuzz==3.9.6
-=======
-rapidfuzz==3.9.6
->>>>>>> 0384166f (train with json added)

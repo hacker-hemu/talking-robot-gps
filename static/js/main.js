@@ -355,7 +355,7 @@ async function detectionLoop() {
                 const labelText = `${displayName} (${Math.round(confidence * 100)}%)`;
                 ctx.fillText(labelText, box.x + 4, box.y - 6);
 
-                console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
+                // console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
             }
         }
     } catch (err) {
