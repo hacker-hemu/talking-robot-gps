@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,9 +47,9 @@
     }
 
     .right {
-      background: #001d3d;
+      /* background: #000; */
       position: relative;
-
+      
     }
 
     /* 🔸 Camera box */
@@ -90,28 +89,20 @@
       border-radius: 50px;
       box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
       transition: all 0.4s ease;
-      background-image: url("static/img/"), radial-gradient(circle at center, #ff0000 0%, #990000 100%);
-      ;
+      background-image: url("static/img/"), radial-gradient(circle at center, #ff0000 0%, #990000 100%);;
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
     }
-
+    
 
     .mouth.speaking {
       animation: talk 0.25s ease-in-out infinite;
     }
 
     @keyframes talk {
-
-      0%,
-      100% {
-        transform: scaleY(1);
-      }
-
-      50% {
-        transform: scaleY(0.4);
-      }
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.4); }
     }
 
     /* When preview hidden — mouth takes full area */
@@ -136,9 +127,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      /* gap: 10px; */
-      /* background: rgba(0, 29, 61, 0.9); */
-      /* padding: 10px 18px; */
+      gap: 10px;
+      background: rgba(0, 29, 61, 0.9);
+      padding: 10px 18px;
       border-radius: 25px;
       box-shadow: 0 0 15px rgba(0, 123, 255, 0.4);
       z-index: 100;
@@ -181,11 +172,11 @@
       border-radius: 50%;
     }
 
-    input:checked+.slider {
+    input:checked + .slider {
       background-color: #007bff;
     }
 
-    input:checked+.slider:before {
+    input:checked + .slider:before {
       transform: translateX(26px);
     }
 
@@ -247,49 +238,8 @@
 
     <div class="right">
       <div id="robot">
-        <div class="mouths">
-          <div class="audio-visualizer">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-          </div>
+        <div class="mouth">
+          <div class="teeth"></div>
         </div>
       </div>
     </div>
@@ -297,7 +247,7 @@
 
   <!-- 🟢 Sticky Toggle Switch -->
   <div class="toggle-bar">
-    <label></label>
+    <label>Preview</label>
     <label class="switch">
       <input type="checkbox" id="previewToggle" checked />
       <span class="slider"></span>
@@ -305,7 +255,8 @@
   </div>
 
   <!-- 🟢 Fullscreen Toggle Button -->
-  <button id="fullscreenBtn" style="
+<button id="fullscreenBtn" 
+  style="
     position: fixed;
     top: 15px;
     right: 15px;
@@ -318,147 +269,39 @@
     z-index: 9999;
     box-shadow: 0 0 10px rgba(0,123,255,0.5);
   ">
-    ⛶
-  </button>
-
-
-
-  
-
-
-
-<style>
-  /* 🎧 Audio Visualizer */
-  .audio-visualizer {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 4px;
-    width: 320px;
-    height: 120px;
-    /* background: radial-gradient(circle at center, #00111f 0%, #000814 100%);
-    border-radius: 60px;
-    box-shadow: 0 0 25px rgba(0, 255, 255, 0.3); */
-    overflow: hidden;
-  }
-
-  .audio-visualizer .bar {
-    width: 3px;
-    height: 0%;
-    background: linear-gradient(180deg, #00e5ff, #ff00c8);
-    border-radius: 8px;
-    box-shadow: 0 0 15px #00e5ff, 0 0 30px #ff00c8;
-    transform-origin: bottom center;
-    transition: height 0.1s ease;
-  }
-</style>
+  ⛶
+</button>
 
 <script>
-  // 🎤 Realistic Voice Visualizer (pitch-like up/down motion)
-  (function () {
-    const visualizer = document.querySelector(".audio-visualizer");
-    if (!visualizer || !window.speechSynthesis) return;
+  const fsBtn = document.getElementById("fullscreenBtn");
 
-    const bars = visualizer.querySelectorAll(".bar");
-    let animationInterval = null;
+  fsBtn.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      fsBtn.textContent = "⛶";
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+      fsBtn.textContent = "⛶";
+    }
+  });
 
-    const randomizeBars = () => {
-      bars.forEach(bar => {
-        const newHeight = Math.random() * 100; // Random height between 0–100%
-        bar.style.height = `${newHeight}%`;
-      });
-    };
-
-    const startAnimation = () => {
-      if (animationInterval) clearInterval(animationInterval);
-      animationInterval = setInterval(randomizeBars, 100); // smooth frequency updates
-    };
-
-    const stopAnimation = () => {
-      clearInterval(animationInterval);
-      bars.forEach(bar => bar.style.height = "0%");
-    };
-
-    const originalSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
-    window.speechSynthesis.speak = function (utter) {
-      startAnimation();
-      const cleanup = () => stopAnimation();
-
-      const prevOnEnd = utter.onend;
-      const prevOnError = utter.onerror;
-      const prevOnPause = utter.onpause;
-
-      utter.onend = e => { cleanup(); if (prevOnEnd) prevOnEnd.call(this, e); };
-      utter.onerror = e => { cleanup(); if (prevOnError) prevOnError.call(this, e); };
-      utter.onpause = e => { cleanup(); if (prevOnPause) prevOnPause.call(this, e); };
-
-      originalSpeak(utter);
-    };
-  })();
+  // Automatically update button label when user presses ESC or exits manually
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      fsBtn.textContent = "⛶";
+    } else {
+      fsBtn.textContent = "⛶";
+    }
+  });
 </script>
 
-
-
-
-
-
-
-
-
-  <script>
-    const fsBtn = document.getElementById("fullscreenBtn");
-
-    fsBtn.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
-        // Enter fullscreen
-        const el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if (el.msRequestFullscreen) el.msRequestFullscreen();
-        fsBtn.textContent = "⛶";
-      } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        else if (document.msExitFullscreen) document.msExitFullscreen();
-        fsBtn.textContent = "⛶";
-      }
-    });
-
-    // Automatically update button label when user presses ESC or exits manually
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement) {
-        fsBtn.textContent = "⛶";
-      } else {
-        fsBtn.textContent = "⛶";
-      }
-    });
-  </script>
-<!-- 
-  <script>
-    /* 🎤 Sync glowing visualizer with speech */
-    (function () {
-      const visualizer = document.querySelector('.audio-visualizer');
-      if (!visualizer || !window.speechSynthesis) return;
-
-      const originalSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
-
-      window.speechSynthesis.speak = function (utter) {
-        visualizer.classList.add('speaking');
-        const cleanup = () => visualizer.classList.remove('speaking');
-
-        const prevOnEnd = utter.onend;
-        const prevOnError = utter.onerror;
-        const prevOnPause = utter.onpause;
-
-        utter.onend = e => { cleanup(); if (prevOnEnd) prevOnEnd.call(this, e); };
-        utter.onerror = e => { cleanup(); if (prevOnError) prevOnError.call(this, e); };
-        utter.onpause = e => { cleanup(); if (prevOnPause) prevOnPause.call(this, e); };
-
-        originalSpeak(utter);
-      };
-    })();
-  </script> -->
 
 
   <!-- 🟡 Your Original Script (unchanged) -->
@@ -477,9 +320,9 @@
         const prevOnError = utter.onerror;
         const prevOnPause = utter.onpause;
 
-        utter.onend = function (e) { cleanup(); if (prevOnEnd) prevOnEnd.call(this, e); };
-        utter.onerror = function (e) { cleanup(); if (prevOnError) prevOnError.call(this, e); };
-        utter.onpause = function (e) { cleanup(); if (prevOnPause) prevOnPause.call(this, e); };
+        utter.onend = function (e) { cleanup(); if(prevOnEnd) prevOnEnd.call(this,e); };
+        utter.onerror = function (e) { cleanup(); if(prevOnError) prevOnError.call(this,e); };
+        utter.onpause = function(e){ cleanup(); if(prevOnPause) prevOnPause.call(this,e); };
 
         originalSpeak(utter);
       };
@@ -500,7 +343,5 @@
       }
     });
   </script>
-  
 </body>
-
 </html>

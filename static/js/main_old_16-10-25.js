@@ -14,8 +14,8 @@ const VIDEO_HEIGHT = 360;
 const DETECT_INTERVAL = 800; // ⚡ Reduced CPU load
 const TINY_INPUT_SIZE = 160;
 const SCORE_THRESHOLD = 0.5;
-const CONFIDENCE_THRESHOLD = 0.55;
-const GREET_DELAY = 60000; // 30 seconds
+const CONFIDENCE_THRESHOLD = 0.60;
+const GREET_DELAY = 15000; // 30 seconds
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('overlay');
@@ -170,6 +170,9 @@ async function speakText(text) {
   window.speechSynthesis.speak(utter);
 }
 
+
+
+
 // 🛡️ Watchdog to keep mic alive
 function startRecognitionWatchdog() {
   setInterval(() => {
@@ -255,6 +258,7 @@ async function startCamera() {
 }
 
 
+
 async function loadKnownFaces() {
     try {
         const res = await fetch('/encodings');
@@ -336,7 +340,7 @@ async function detectionLoop() {
                 const labelText = `${displayName} (${Math.round(confidence * 100)}%)`;
                 ctx.fillText(labelText, box.x + 4, box.y - 6);
 
-                console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
+                // console.log(`👤 Detected: ${best.label}, Confidence: ${Math.round(confidence * 100)}%, Display: ${displayName}`);
             }
         }
     } catch (err) {

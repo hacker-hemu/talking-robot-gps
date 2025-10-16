@@ -1,132 +1,13 @@
-# # ======================================
-# # 🧠 Simple Chatbot using Flask
-# # ======================================
-
-# from flask import Flask, jsonify, request, send_from_directory
-# import os
-# import json
-# from rapidfuzz import fuzz, process
-
-# app = Flask(__name__, static_folder="static", static_url_path="/static")
-
-# # === Load Q&A Dictionary ===
-# qa_file = "qa.json"
-# if os.path.exists(qa_file):
-#     with open(qa_file, "r", encoding="utf-8") as f:
-#         qa_dict = json.load(f)
-# else:
-#     print("⚠️ qa.json not found — using default dictionary")
-#     qa_dict = {
-#         "hi": "Hello! I'm Xyro, the AI bot created by 8th grade students at GPS. How can I help you today?",
-#         "hello": "Namaste! I'm Xyro from GPS AI Lab. Welcome to our event!",
-#         "hey": "Hey there! I'm Xyro. Great to see you!",
-#         "what is your name": "I am Xyro, your language-learning assistant!",
-#         "who are you": "I am a virtual language teacher here to help you improve your language skills.",
-#         "welcome back": "Thank you! It's good to see you again!",
-#         "good morning": "Good morning! A wonderful day to visit our GPS AI Lab!",
-#         "good afternoon": "Good afternoon! I hope you're having a great day!",
-#         "good evening": "Good evening! Welcome to our exhibition."
-#     }
-
-# @app.route('/')
-# def index():
-#     return send_from_directory("static", "index.html")
-
-# @app.route('/known/<path:filename>')
-# def known(filename):
-#     return send_from_directory("known", filename)
-
-# @app.route('/known-list', methods=["GET"])
-# def known_list():
-#     base = os.path.join(os.getcwd(), "known")
-#     files = []
-    
-#     if os.path.isdir(base):
-#         for f in os.listdir(base):
-#             if f.lower().endswith((".jpg", ".png", ".jpeg")):
-#                 files.append(f)
-
-#     return jsonify({"images": files})
-
-# @app.route('/ask', methods=['POST'])
-# def ask():
-#     try:
-#         # Get JSON data safely
-#         if not request.is_json:
-#             return jsonify({
-#                 "answer": "Please provide a valid JSON request.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-        
-#         data = request.get_json()
-#         if not data:
-#             return jsonify({
-#                 "answer": "Please provide a valid JSON request.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-        
-#         question = (data.get('question') or '').strip().lower()
-
-#         if not question:
-#             return jsonify({
-#                 "answer": "Please ask a valid question.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-
-#         print(f"🧠 User asked: {question}")
-
-#         # Find best match using fuzzy matching
-#         best_match, score = None, 0
-        
-#         if qa_dict and len(qa_dict) > 0:
-#             result = process.extractOne(question, qa_dict.keys(), scorer=fuzz.token_sort_ratio)
-#             if result:
-#                 best_match, score = result[0], result[1]
-#         else:
-#             return jsonify({
-#                 "answer": "I'm still learning. Please try again later.",
-#                 "match": None,
-#                 "score": 0
-#             }), 500
-
-#         # Respond based on match score
-#         if score >= 60:
-#             print(f"✅ Matched question: '{best_match}' ({score}%)")
-#             return jsonify({
-#                 "answer": qa_dict[best_match],
-#                 "match": best_match,
-#                 "score": score
-#             })
-#         # else:
-#         #     # If no good match found
-#         #     print(f"❌ No suitable match found. Best match: {best_match} ({score}%)")
-#         #     return jsonify({
-#         #         "answer": "Sorry, I didn't understand that. Can you rephrase?",
-#         #         "match": best_match,
-#         #         "score": score
-#         #     })
-            
-#     except Exception as e:
-#         print(f"❌ Error in /ask route: {str(e)}")
-#         return jsonify({
-#             "answer": "Sorry, I encountered an error. Please try again.",
-#             "match": None,
-#             "score": 0,
-#             "error": str(e)
-#         }), 500
-
-# if __name__ == "__main__":
-#     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-
 from flask import Flask, jsonify, request, send_from_directory
 import os
 import json
 from rapidfuzz import fuzz, process
+import google.generativeai as genai
+import re
+
+
+genai.configure(api_key="AIzaSyB_56-KjiwDaO-cwIo5j3BbkcM8_a-pXk0")
+
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -167,8 +48,62 @@ def load_qa_data():
         print("⚠️ qa.json not found — using default dictionary")
         return default_qa
 
+
 # Load Q&A data
 qa_dict = load_qa_data()
+
+# def get_gemini_answer(question):
+#     try:
+#         # Use a valid model name
+#         model = genai.GenerativeModel("gemini-2.5-flash")
+#         response = model.generate_content(question)
+#         return response.text.strip() if response.text else "No answer from Gemini."
+#     except Exception as e:
+#         import traceback
+#         traceback.print_exc()
+#         return f"Sorry, Gemini is not responding right now ({e})"
+
+def clean_gemini_text(text: str) -> str:
+    """Remove markdown, bullets, numbering, and shrink long text."""
+    if not text:
+        return ""
+
+    # Remove markdown/special characters and bullets
+    cleaned = re.sub(r'[*_`>#=\[\]{}|\\~^]', '', text)
+    cleaned = re.sub(r'^\s*\d+[\.\)]\s*', '', cleaned, flags=re.MULTILINE)  # remove numbered lists
+    cleaned = re.sub(r'[-•]\s*', '', cleaned)                               # remove bullet marks
+    cleaned = re.sub(r'\s{2,}', ' ', cleaned).strip()
+
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', cleaned)
+
+    # Keep only the first few sentences (approx. 50 words total)
+    short_text = []
+    total_words = 0
+    for s in sentences:
+        words = len(s.split())
+        if total_words + words > 50:
+            break
+        short_text.append(s)
+        total_words += words
+
+    return ' '.join(short_text)
+
+def get_gemini_answer(question):
+    """Ask Gemini and return a short, clean reply."""
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content(question)
+        raw_text = response.text.strip() if response.text else "No answer from Gemini."
+
+        cleaned_text = clean_gemini_text(raw_text)
+        return cleaned_text if cleaned_text else raw_text[:200]
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"Sorry, Gemini is not responding right now ({e})"
+    
 
 @app.route('/')
 def index():
@@ -195,92 +130,6 @@ def known_list():
     except Exception as e:
         print(f"❌ Error in known-list: {e}")
         return jsonify({"images": []})
-
-# @app.route('/ask', methods=['POST'])
-# def ask():
-#     try:
-#         print("📥 Received request to /ask")
-        
-#         # Get JSON data
-#         if not request.is_json:
-#             print("❌ Request is not JSON")
-#             return jsonify({
-#                 "answer": "Please provide a valid JSON request.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-        
-#         data = request.get_json()
-#         if not data:
-#             print("❌ No data in request")
-#             return jsonify({
-#                 "answer": "Please provide a valid JSON request.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-        
-#         question = (data.get('question') or '').strip().lower()
-#         print(f"🧠 User asked: '{question}'")
-
-#         if not question:
-#             print("❌ Empty question")
-#             return jsonify({
-#                 "answer": "Please ask a valid question.",
-#                 "match": None,
-#                 "score": 0
-#             }), 400
-
-#         # Find best match using fuzzy matching
-#         best_match, score = None, 0
-        
-#         if qa_dict and len(qa_dict) > 0:
-#             try:
-#                 result = process.extractOne(question, qa_dict.keys(), scorer=fuzz.token_sort_ratio)
-#                 if result:
-#                     best_match, score = result[0], result[1]
-#                     print(f"🔍 Best match: '{best_match}' with score: {score}%")
-#             except Exception as e:
-#                 print(f"❌ Error in fuzzy matching: {e}")
-#                 # Fallback: simple keyword matching
-#                 for key in qa_dict.keys():
-#                     if key in question:
-#                         best_match, score = key, 80
-#                         break
-#         else:
-#             print("❌ Q&A dictionary is empty")
-#             return jsonify({
-#                 "answer": "I'm still learning. Please try again later.",
-#                 "match": None,
-#                 "score": 0
-#             }), 500
-
-#         # Respond based on match score
-#         if score >= 70:  # Lowered threshold to 50% for better matching
-#             print(f"✅ Answering: '{best_match}'")
-#             return jsonify({
-#                 "answer": qa_dict[best_match],
-#                 "match": best_match,
-#                 "score": score
-#             })
-#         # else:
-#         #     # If no good match found
-#         #     print(f"❌ No good match found. Best was: '{best_match}' ({score}%)")
-#         #     return jsonify({
-#         #         "answer": "Sorry, I didn't understand that. Can you rephrase your question?",
-#         #         "match": best_match,
-#         #         "score": score
-#         #     })
-            
-#     except Exception as e:
-#         print(f"❌ Unexpected error in /ask route: {str(e)}")
-#         import traceback
-#         traceback.print_exc()
-#         return jsonify({
-#             "answer": "Sorry, I encountered an unexpected error. Please try again.",
-#             "match": None,
-#             "score": 0,
-#             "error": str(e)
-#         }), 500
 
 
 @app.route('/ask', methods=['POST'])
@@ -323,12 +172,22 @@ def ask():
         print(f"🔍 Best match: '{best_match}' ({best_score}%)")
 
         # === Confidence check ===
-        if best_score >= 70:
+        if best_score >= 90:
             print(f"✅ Answering for: '{best_match}'")
             return jsonify({
                 "answer": qa_dict[best_match],
                 "match": best_match,
                 "score": best_score
+            })
+        else:
+            print(f"⚠️ Low confidence ({best_score}%) — asking Gemini...")
+            gemini_answer = get_gemini_answer(question)
+
+            return jsonify({
+                "answer": gemini_answer,
+                "match": None,
+                "score": best_score,
+                "source": "gemini"
             })
         # else:
         #     print(f"❌ Low confidence ({best_score}%)")
@@ -340,12 +199,12 @@ def ask():
 
     except Exception as e:
         print(f"❌ Error in /ask: {str(e)}")
-        return jsonify({
-            "answer": "Sorry, an error occurred. Please try again.",
-            "match": None,
-            "score": 0,
-            "error": str(e)
-        }), 500
+        # return jsonify({
+        #     "answer": "Sorry, an error occurred. Please try again.",
+        #     "match": None,
+        #     "score": 0,
+        #     "error": str(e)
+        # }), 500
 
 
 @app.route("/encodings")
